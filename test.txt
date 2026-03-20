@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AcademIQ v2 - Student Performance Advisor</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="javascript:void(0)" onclick="goTo('home')">
+    <div class="nav-logo-text">Academ<span>IQ</span></div>
+    <div class="nav-tagline">Performance Advisor v2</div>
+  </a>
+  <div class="nav-links">
+    <button class="active" id="nav-home"    onclick="goTo('home')">Home</button>
+    <button id="nav-assess"   onclick="goTo('assess')">Assess</button>
+    <button id="nav-results"  onclick="goTo('results')">Results</button>
+    <button id="nav-history"  onclick="goTo('history')">Records</button>
+    <button id="nav-stats"    onclick="goTo('stats')">Stats</button>
+    <button id="nav-graphql"  onclick="goTo('graphql')">GraphQL</button>
+  </div>
+  <div class="nav-right">
+    <span id="db-badge" class="db-badge">SQLite</span>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-text">Analyzing Performance</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+</div>
+<div class="toast" id="toast"><span id="toast-msg">Done</span></div>
+
+<!-- HOME - visible by default -->
+<div id="home" style="padding-top:56px; display:block">
+  <div class="hero-wrap">
+    <div class="hero-left">
+      <div class="hero-issue">Vol. 2 - Academic Intelligence System</div>
+      <h1 class="hero-title">Know Your<br><span class="accent">Performance.</span> Change It.</h1>
+      <p class="hero-desc">AI-powered academic analysis using Semantic Nets and Knowledge Frames. Get a prioritized, personalized action plan.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="goTo('assess')">Start Assessment</button>
+        <button class="btn-secondary" onclick="goTo('history')">View Records</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="stat-block">
+        <div class="corner-mark">METRIC / 01</div>
+        <div class="stat-label">AI strategies in knowledge base</div>
+        <div class="stat-value" style="color:#e84141">12</div>
+        <div class="stat-desc">Semantic net edges connecting problems to solutions</div>
+      </div>
+      <div class="stat-block">
+        <div class="corner-mark">METRIC / 02</div>
+        <div class="stat-label">Performance levels assessed</div>
+        <div class="stat-value">5</div>
+        <div class="stat-desc">From Excellent to Critical with distinct action plans</div>
+      </div>
+    </div>
+  </div>
+  <div class="features-strip">
+    <div class="feature-block"><div class="f-num">01</div><div class="f-title">Input Your Profile</div><p class="f-desc">Enter subject scores, attendance, study hours, and learning preferences.</p></div>
+    <div class="feature-block"><div class="f-num">02</div><div class="f-title">AI Frame Inference</div><p class="f-desc">Frames and Semantic Net engine maps your data to performance patterns.</p></div>
+    <div class="feature-block"><div class="f-num">03</div><div class="f-title">Prioritized Action Plan</div><p class="f-desc">Receive Critical to Low ranked advice with step-by-step guidance.</p></div>
+  </div>
+</div>
+
+<!-- ASSESS - hidden by default -->
+<div id="assess" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Assessment Form</div>
+      <h2 class="section-title">Student Profile<span class="sub">Fill in your academic details for a personalized analysis.</span></h2>
+    </div>
+  </div>
+  <div class="form-body">
+    <div style="border-top:1px solid rgba(17,17,17,0.1)">
+      <div class="field-group">
+        <div class="field"><label>Full Name</label><input type="text" id="f-name" placeholder="e.g. Maria Santos"/></div>
+        <div class="field"><label>Grade / Year Level</label>
+          <select id="f-grade">
+            <option value="">Select level...</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+            <option value="1st Year College">1st Year College</option>
+            <option value="2nd Year College">2nd Year College</option>
+            <option value="3rd Year College">3rd Year College</option>
+            <option value="4th Year College">4th Year College</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Attendance Rate (%)</label><input type="number" id="f-attendance" placeholder="e.g. 87" min="0" max="100"/></div>
+        <div class="field"><label>Daily Study Hours</label><input type="number" id="f-study" placeholder="e.g. 3" min="0" max="24" step="0.5"/></div>
+      </div>
+      <div class="field-group single">
+        <div class="field" style="border-right:none;padding-left:0">
+          <label>Learning Style</label>
+          <select id="f-style" style="max-width:400px">
+            <option value="">Select your style...</option>
+            <option value="visual">Visual - diagrams, charts, videos</option>
+            <option value="auditory">Auditory - listening, discussion</option>
+            <option value="reading">Reading / Writing - notes, books</option>
+            <option value="kinesthetic">Kinesthetic - hands-on, practice</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="padding:1.5rem 0;border-bottom:1px solid rgba(17,17,17,0.1)">
+      <div class="subjects-wrap">
+        <div class="subjects-bar">
+          <span>Subject Scores</span>
+          <button class="btn-add" onclick="addRow()">+ Add Row</button>
+        </div>
+        <table class="subjects-table">
+          <thead><tr><th style="width:40%">Subject Name</th><th style="width:20%">Score (0-100)</th><th style="width:20%">Difficulty</th><th style="width:20%">Action</th></tr></thead>
+          <tbody id="subjects-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="field-group single">
+      <div class="field" style="border-right:none;padding-left:0">
+        <label>Extracurricular Activities</label>
+        <div class="tag-row">
+          <span class="tag" onclick="toggleTag(this)">Sports</span>
+          <span class="tag" onclick="toggleTag(this)">Drama</span>
+          <span class="tag" onclick="toggleTag(this)">Music</span>
+          <span class="tag" onclick="toggleTag(this)">Robotics</span>
+          <span class="tag" onclick="toggleTag(this)">Writing</span>
+          <span class="tag" onclick="toggleTag(this)">Art</span>
+          <span class="tag" onclick="toggleTag(this)">Coding Club</span>
+          <span class="tag" onclick="toggleTag(this)">Debate</span>
+          <span class="tag" onclick="toggleTag(this)">Photography</span>
+          <span class="tag" onclick="toggleTag(this)">Science Club</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn-secondary" onclick="resetForm()">Reset Form</button>
+      <button class="btn-primary" onclick="submitForm()">Analyze Performance</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS - hidden -->
+<div id="results" style="padding-top:56px; display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem 4rem;border-bottom:2px solid #111111">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;text-transform:uppercase;color:#555555">// Performance Report</div>
+    <div style="display:flex">
+      <button class="btn-secondary" onclick="goTo('assess')">Edit</button>
+      <button class="btn-primary" id="save-btn" onclick="saveRecord()" disabled>Save Record</button>
+    </div>
+  </div>
+  <div class="result-banner">
+    <div>
+      <div class="result-level" id="res-level">// -</div>
+      <div class="result-student-name" id="res-name">-</div>
+      <div class="result-summary" id="res-summary">Run an analysis to see results.</div>
+    </div>
+    <div class="gpa-block">
+      <div class="gpa-number" id="res-gpa">-</div>
+      <div class="gpa-sub">Cumulative GPA</div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-cell"><div class="m-label">Attendance Rate</div><div class="m-value" id="m-att">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-att-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Study Hours / Day</div><div class="m-value" id="m-study">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-study-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Subjects Assessed</div><div class="m-value" id="m-subcount">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-sub-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Action Items</div><div class="m-value" id="m-advice">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-adv-bar" style="width:0%"></div></div></div>
+  </div>
+  <div class="analysis-grid">
+    <div class="analysis-panel"><div class="panel-title">Subject Performance</div><div id="res-subjects"><p style="color:#555555">No data yet.</p></div></div>
+    <div class="analysis-panel"><div class="panel-title">Issues and Strengths</div><div id="res-issues"><p style="color:#555555">No data yet.</p></div></div>
+  </div>
+  <div class="advice-section">
+    <div class="advice-header">
+      <h2 class="section-title">Action Plan</h2>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#555555">CLICK ANY CARD TO EXPAND STEPS</div>
+    </div>
+    <div class="advice-grid" id="res-advice"></div>
+  </div>
+</div>
+
+<!-- HISTORY - hidden -->
+<div id="history" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Database Records</div>
+      <h2 class="section-title">Student History<span class="sub" id="history-total">All records</span></h2>
+    </div>
+  </div>
+  <div class="history-controls">
+    <input class="search-input" id="h-search" placeholder="Search by name..." oninput="loadHistory()" style="max-width:280px"/>
+    <select class="filter-select" id="h-level" onchange="loadHistory()">
+      <option value="">All levels</option>
+      <option value="excellent">Excellent</option>
+      <option value="good">Good</option>
+      <option value="average">Average</option>
+      <option value="below_average">Below Average</option>
+      <option value="critical">Critical</option>
+    </select>
+    <button class="btn-export" onclick="window.open('http://localhost:5000/api/export/csv')">Export CSV</button>
+    <button class="btn-secondary" onclick="loadHistory()" style="font-size:0.85rem">Refresh</button>
+  </div>
+  <div class="students-table-wrap">
+    <table class="students-table">
+      <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>GPA</th><th>Level</th><th>Attendance</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="students-table-body">
+        <tr><td colspan="8" style="text-align:center;padding:3rem;color:#555555">Click Refresh to load records.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STATS - hidden -->
+<div id="stats" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Analytics Dashboard</div>
+      <h2 class="section-title">System Statistics</h2>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stats-cell"><div class="sc-label">Total Students</div><div class="sc-value" id="stat-total">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Average GPA</div><div class="sc-value" id="stat-gpa">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Avg Attendance</div><div class="sc-value" id="stat-att">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Excellent Performers</div><div class="sc-value" id="stat-exc" style="color:#1a7a4a">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Critical Students</div><div class="sc-value" id="stat-crit" style="color:#e84141">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Top Problem</div><div id="stat-top-prob" style="font-size:1.3rem;font-weight:900;text-transform:uppercase;margin-top:0.3rem">-</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1.4fr 1.4fr;border-bottom:2px solid #111111">
+    <div style="padding:2rem;border-right:2px solid #111111"><div class="sc-label" style="margin-bottom:1rem">Performance Distribution</div><canvas id="chart-levels" height="220"></canvas></div>
+    <div style="padding:2rem;border-right:2px solid #111111"><div class="sc-label" style="margin-bottom:1rem">Subject Averages</div><canvas id="chart-subjects" height="220"></canvas></div>
+    <div style="padding:2rem"><div class="sc-label" style="margin-bottom:1rem">Problem Frequency</div><canvas id="chart-problems" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- GRAPHQL - hidden -->
+<div id="graphql" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// API - GraphQL Explorer</div>
+      <h2 class="section-title">Query Interface<span class="sub">POST to /api/graphql</span></h2>
+    </div>
+  </div>
+  <div style="padding:1.5rem 4rem;border-bottom:1px solid rgba(17,17,17,0.1)">
+    <div class="gql-presets">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:#555555;margin-right:0.5rem">PRESETS:</span>
+      <button class="preset-btn" onclick="loadPreset('All Students')">All Students</button>
+      <button class="preset-btn" onclick="loadPreset('Stats')">Stats</button>
+      <button class="preset-btn" onclick="loadPreset('Search')">Search</button>
+      <button class="preset-btn" onclick="loadPreset('Single Student')">Single Student</button>
+    </div>
+  </div>
+  <div class="gql-layout">
+    <div class="gql-pane">
+      <div class="gql-label">Query Editor</div>
+      <textarea class="gql-textarea" id="gql-query" spellcheck="false"></textarea>
+      <div style="margin-top:1rem"><button class="btn-primary" onclick="runGraphQL()">Run Query</button></div>
+    </div>
+    <div class="gql-pane" style="border-right:none">
+      <div class="gql-label">Response</div>
+      <pre class="gql-result" id="gql-result">// Results will appear here...</pre>
+    </div>
+  </div>
+  <div style="padding:2rem 4rem 4rem;border-top:2px solid #111111">
+    <div class="section-eyebrow" style="margin-bottom:1.5rem">// REST API Reference</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+      <thead><tr style="background:#111111;color:#f5f2eb">
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Method</th>
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Endpoint</th>
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Description</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/analyze</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Stateless analysis</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Create and save student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">List all students</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Get student by ID</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#d4820a">PUT</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Update student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">DELETE</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Delete student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/stats</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">System statistics</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#6b21a8">GET/POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/graphql</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">GraphQL endpoint</td></tr>
+        <tr><td style="padding:0.65rem 1rem;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;font-family:'IBM Plex Mono',monospace">/api/db-info</td><td style="padding:0.65rem 1rem">DB type and schema</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var PAGES = ['home','assess','results','history','stats','graphql'];
+var currentFormData = null;
+var rowCount = 0;
+var chartObjs = {};
+
+function goTo(name) {
+  for (var i = 0; i < PAGES.length; i++) {
+    var el = document.getElementById(PAGES[i]);
+    if (el) el.style.display = 'none';
+  }
+  var btns = document.querySelectorAll('.nav-links button');
+  for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+  var show = document.getElementById(name);
+  if (show) show.style.display = 'block';
+  var nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+  window.scrollTo(0, 0);
+  if (name === 'history') loadHistory();
+  if (name === 'stats') loadStats();
+}
+
+var BASE = 'http://localhost:5000/api';
+
+async function apiPost(url, data) {
+  var r = await fetch(BASE + url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return r.json();
+}
+
+async function apiGet(url) {
+  var r = await fetch(BASE + url);
+  return r.json();
+}
+
+async function apiDel(url) {
+  var r = await fetch(

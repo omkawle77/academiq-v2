@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AcademIQ v2 - Student Performance Advisor</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="javascript:void(0)" onclick="goTo('home')">
+    <div class="nav-logo-text">Academ<span>IQ</span></div>
+    <div class="nav-tagline">Performance Advisor v2</div>
+  </a>
+  <div class="nav-links">
+    <button class="active" id="nav-home"    onclick="goTo('home')">Home</button>
+    <button id="nav-assess"   onclick="goTo('assess')">Assess</button>
+    <button id="nav-results"  onclick="goTo('results')">Results</button>
+    <button id="nav-history"  onclick="goTo('history')">Records</button>
+    <button id="nav-stats"    onclick="goTo('stats')">Stats</button>
+    <button id="nav-graphql"  onclick="goTo('graphql')">GraphQL</button>
+  </div>
+  <div class="nav-right">
+    <span id="db-badge" class="db-badge">SQLite</span>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-text">Analyzing Performance</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+</div>
+<div class="toast" id="toast"><span id="toast-msg">Done</span></div>
+
+<!-- HOME - visible by default -->
+<div id="home" style="padding-top:56px; display:block">
+  <div class="hero-wrap">
+    <div class="hero-left">
+      <div class="hero-issue">Vol. 2 - Academic Intelligence System</div>
+      <h1 class="hero-title">Know Your<br><span class="accent">Performance.</span> Change It.</h1>
+      <p class="hero-desc">AI-powered academic analysis using Semantic Nets and Knowledge Frames. Get a prioritized, personalized action plan.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="goTo('assess')">Start Assessment</button>
+        <button class="btn-secondary" onclick="goTo('history')">View Records</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="stat-block">
+        <div class="corner-mark">METRIC / 01</div>
+        <div class="stat-label">AI strategies in knowledge base</div>
+        <div class="stat-value" style="color:#e84141">12</div>
+        <div class="stat-desc">Semantic net edges connecting problems to solutions</div>
+      </div>
+      <div class="stat-block">
+        <div class="corner-mark">METRIC / 02</div>
+        <div class="stat-label">Performance levels assessed</div>
+        <div class="stat-value">5</div>
+        <div class="stat-desc">From Excellent to Critical with distinct action plans</div>
+      </div>
+    </div>
+  </div>
+  <div class="features-strip">
+    <div class="feature-block"><div class="f-num">01</div><div class="f-title">Input Your Profile</div><p class="f-desc">Enter subject scores, attendance, study hours, and learning preferences.</p></div>
+    <div class="feature-block"><div class="f-num">02</div><div class="f-title">AI Frame Inference</div><p class="f-desc">Frames and Semantic Net engine maps your data to performance patterns.</p></div>
+    <div class="feature-block"><div class="f-num">03</div><div class="f-title">Prioritized Action Plan</div><p class="f-desc">Receive Critical to Low ranked advice with step-by-step guidance.</p></div>
+  </div>
+</div>
+
+<!-- ASSESS - hidden by default -->
+<div id="assess" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Assessment Form</div>
+      <h2 class="section-title">Student Profile<span class="sub">Fill in your academic details for a personalized analysis.</span></h2>
+    </div>
+  </div>
+  <div class="form-body">
+    <div style="border-top:1px solid rgba(17,17,17,0.1)">
+      <div class="field-group">
+        <div class="field"><label>Full Name</label><input type="text" id="f-name" placeholder="e.g. Maria Santos"/></div>
+        <div class="field"><label>Grade / Year Level</label>
+          <select id="f-grade">
+            <option value="">Select level...</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+            <option value="1st Year College">1st Year College</option>
+            <option value="2nd Year College">2nd Year College</option>
+            <option value="3rd Year College">3rd Year College</option>
+            <option value="4th Year College">4th Year College</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Attendance Rate (%)</label><input type="number" id="f-attendance" placeholder="e.g. 87" min="0" max="100"/></div>
+        <div class="field"><label>Daily Study Hours</label><input type="number" id="f-study" placeholder="e.g. 3" min="0" max="24" step="0.5"/></div>
+      </div>
+      <div class="field-group single">
+        <div class="field" style="border-right:none;padding-left:0">
+          <label>Learning Style</label>
+          <select id="f-style" style="max-width:400px">
+            <option value="">Select your style...</option>
+            <option value="visual">Visual - diagrams, charts, videos</option>
+            <option value="auditory">Auditory - listening, discussion</option>
+            <option value="reading">Reading / Writing - notes, books</option>
+            <option value="kinesthetic">Kinesthetic - hands-on, practice</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="padding:1.5rem 0;border-bottom:1px solid rgba(17,17,17,0.1)">
+      <div class="subjects-wrap">
+        <div class="subjects-bar">
+          <span>Subject Scores</span>
+          <button class="btn-add" onclick="addRow()">+ Add Row</button>
+        </div>
+        <table class="subjects-table">
+          <thead><tr><th style="width:40%">Subject Name</th><th style="width:20%">Score (0-100)</th><th style="width:20%">Difficulty</th><th style="width:20%">Action</th></tr></thead>
+          <tbody id="subjects-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="field-group single">
+      <div class="field" style="border-right:none;padding-left:0">
+        <label>Extracurricular Activities</label>
+        <div class="tag-row">
+          <span class="tag" onclick="toggleTag(this)">Sports</span>
+          <span class="tag" onclick="toggleTag(this)">Drama</span>
+          <span class="tag" onclick="toggleTag(this)">Music</span>
+          <span class="tag" onclick="toggleTag(this)">Robotics</span>
+          <span class="tag" onclick="toggleTag(this)">Writing</span>
+          <span class="tag" onclick="toggleTag(this)">Art</span>
+          <span class="tag" onclick="toggleTag(this)">Coding Club</span>
+          <span class="tag" onclick="toggleTag(this)">Debate</span>
+          <span class="tag" onclick="toggleTag(this)">Photography</span>
+          <span class="tag" onclick="toggleTag(this)">Science Club</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn-secondary" onclick="resetForm()">Reset Form</button>
+      <button class="btn-primary" onclick="submitForm()">Analyze Performance</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS - hidden -->
+<div id="results" style="padding-top:56px; display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem 4rem;border-bottom:2px solid #111111">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;text-transform:uppercase;color:#555555">// Performance Report</div>
+    <div style="display:flex">
+      <button class="btn-secondary" onclick="goTo('assess')">Edit</button>
+      <button class="btn-primary" id="save-btn" onclick="saveRecord()" disabled>Save Record</button>
+    </div>
+  </div>
+  <div class="result-banner">
+    <div>
+      <div class="result-level" id="res-level">// -</div>
+      <div class="result-student-name" id="res-name">-</div>
+      <div class="result-summary" id="res-summary">Run an analysis to see results.</div>
+    </div>
+    <div class="gpa-block">
+      <div class="gpa-number" id="res-gpa">-</div>
+      <div class="gpa-sub">Cumulative GPA</div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-cell"><div class="m-label">Attendance Rate</div><div class="m-value" id="m-att">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-att-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Study Hours / Day</div><div class="m-value" id="m-study">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-study-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Subjects Assessed</div><div class="m-value" id="m-subcount">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-sub-bar" style="width:0%"></div></div></div>
+    <div class="metric-cell"><div class="m-label">Action Items</div><div class="m-value" id="m-advice">-</div><div class="m-bar-track"><div class="m-bar-fill" id="m-adv-bar" style="width:0%"></div></div></div>
+  </div>
+  <div class="analysis-grid">
+    <div class="analysis-panel"><div class="panel-title">Subject Performance</div><div id="res-subjects"><p style="color:#555555">No data yet.</p></div></div>
+    <div class="analysis-panel"><div class="panel-title">Issues and Strengths</div><div id="res-issues"><p style="color:#555555">No data yet.</p></div></div>
+  </div>
+  <div class="advice-section">
+    <div class="advice-header">
+      <h2 class="section-title">Action Plan</h2>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#555555">CLICK ANY CARD TO EXPAND STEPS</div>
+    </div>
+    <div class="advice-grid" id="res-advice"></div>
+  </div>
+</div>
+
+<!-- HISTORY - hidden -->
+<div id="history" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Database Records</div>
+      <h2 class="section-title">Student History<span class="sub" id="history-total">All records</span></h2>
+    </div>
+  </div>
+  <div class="history-controls">
+    <input class="search-input" id="h-search" placeholder="Search by name..." oninput="loadHistory()" style="max-width:280px"/>
+    <select class="filter-select" id="h-level" onchange="loadHistory()">
+      <option value="">All levels</option>
+      <option value="excellent">Excellent</option>
+      <option value="good">Good</option>
+      <option value="average">Average</option>
+      <option value="below_average">Below Average</option>
+      <option value="critical">Critical</option>
+    </select>
+    <button class="btn-export" onclick="window.open('http://localhost:5000/api/export/csv')">Export CSV</button>
+    <button class="btn-secondary" onclick="loadHistory()" style="font-size:0.85rem">Refresh</button>
+  </div>
+  <div class="students-table-wrap">
+    <table class="students-table">
+      <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>GPA</th><th>Level</th><th>Attendance</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="students-table-body">
+        <tr><td colspan="8" style="text-align:center;padding:3rem;color:#555555">Click Refresh to load records.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STATS - hidden -->
+<div id="stats" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// Analytics Dashboard</div>
+      <h2 class="section-title">System Statistics</h2>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stats-cell"><div class="sc-label">Total Students</div><div class="sc-value" id="stat-total">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Average GPA</div><div class="sc-value" id="stat-gpa">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Avg Attendance</div><div class="sc-value" id="stat-att">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Excellent Performers</div><div class="sc-value" id="stat-exc" style="color:#1a7a4a">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Critical Students</div><div class="sc-value" id="stat-crit" style="color:#e84141">-</div></div>
+    <div class="stats-cell"><div class="sc-label">Top Problem</div><div id="stat-top-prob" style="font-size:1.3rem;font-weight:900;text-transform:uppercase;margin-top:0.3rem">-</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1.4fr 1.4fr;border-bottom:2px solid #111111">
+    <div style="padding:2rem;border-right:2px solid #111111"><div class="sc-label" style="margin-bottom:1rem">Performance Distribution</div><canvas id="chart-levels" height="220"></canvas></div>
+    <div style="padding:2rem;border-right:2px solid #111111"><div class="sc-label" style="margin-bottom:1rem">Subject Averages</div><canvas id="chart-subjects" height="220"></canvas></div>
+    <div style="padding:2rem"><div class="sc-label" style="margin-bottom:1rem">Problem Frequency</div><canvas id="chart-problems" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- GRAPHQL - hidden -->
+<div id="graphql" style="padding-top:56px; display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">// API - GraphQL Explorer</div>
+      <h2 class="section-title">Query Interface<span class="sub">POST to /api/graphql</span></h2>
+    </div>
+  </div>
+  <div style="padding:1.5rem 4rem;border-bottom:1px solid rgba(17,17,17,0.1)">
+    <div class="gql-presets">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:#555555;margin-right:0.5rem">PRESETS:</span>
+      <button class="preset-btn" onclick="loadPreset('All Students')">All Students</button>
+      <button class="preset-btn" onclick="loadPreset('Stats')">Stats</button>
+      <button class="preset-btn" onclick="loadPreset('Search')">Search</button>
+      <button class="preset-btn" onclick="loadPreset('Single Student')">Single Student</button>
+    </div>
+  </div>
+  <div class="gql-layout">
+    <div class="gql-pane">
+      <div class="gql-label">Query Editor</div>
+      <textarea class="gql-textarea" id="gql-query" spellcheck="false"></textarea>
+      <div style="margin-top:1rem"><button class="btn-primary" onclick="runGraphQL()">Run Query</button></div>
+    </div>
+    <div class="gql-pane" style="border-right:none">
+      <div class="gql-label">Response</div>
+      <pre class="gql-result" id="gql-result">// Results will appear here...</pre>
+    </div>
+  </div>
+  <div style="padding:2rem 4rem 4rem;border-top:2px solid #111111">
+    <div class="section-eyebrow" style="margin-bottom:1.5rem">// REST API Reference</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+      <thead><tr style="background:#111111;color:#f5f2eb">
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Method</th>
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Endpoint</th>
+        <th style="padding:0.7rem 1rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.65rem">Description</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/analyze</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Stateless analysis</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Create and save student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">List all students</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Get student by ID</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#d4820a">PUT</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Update student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e84141">DELETE</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/students/:id</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">Delete student</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/stats</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">System statistics</td></tr>
+        <tr><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace;font-weight:600;color:#6b21a8">GET/POST</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08);font-family:'IBM Plex Mono',monospace">/api/graphql</td><td style="padding:0.65rem 1rem;border-bottom:1px solid rgba(17,17,17,0.08)">GraphQL endpoint</td></tr>
+        <tr><td style="padding:0.65rem 1rem;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#0d7377">GET</td><td style="padding:0.65rem 1rem;font-family:'IBM Plex Mono',monospace">/api/db-info</td><td style="padding:0.65rem 1rem">DB type and schema</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var PAGES = ['home','assess','results','history','stats','graphql'];
+var currentFormData = null;
+var rowCount = 0;
+var chartObjs = {};
+
+function goTo(name) {
+  for (var i = 0; i < PAGES.length; i++) {
+    var el = document.getElementById(PAGES[i]);
+    if (el) el.style.display = 'none';
+  }
+  var btns = document.querySelectorAll('.nav-links button');
+  for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+  var show = document.getElementById(name);
+  if (show) show.style.display = 'block';
+  var nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+  window.scrollTo(0, 0);
+  if (name === 'history') loadHistory();
+  if (name === 'stats') loadStats();
+}
+
+var BASE = 'http://localhost:5000/api';
+
+async function apiPost(url, data) {
+  var r = await fetch(BASE + url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return r.json();
+}
+
+async function apiGet(url) {
+  var r = await fetch(BASE + url);
+  return r.json();
+}
+
+async function apiDel(url) {
+  var r = await fetch(BASE + url, { method: 'DELETE' });
+  return r.json();
+}
+
+function addRow(name, score, diff) {
+  name = name || ''; score = score || ''; diff = diff || 'medium';
+  rowCount++;
+  var id = rowCount;
+  var tbody = document.getElementById('subjects-tbody');
+  if (!tbody) return;
+  var tr = document.createElement('tr');
+  tr.id = 'row' + id;
+  tr.innerHTML =
+    '<td><input type="text" placeholder="e.g. Mathematics" value="' + name + '" class="sub-name"></td>' +
+    '<td><input type="number" placeholder="0-100" min="0" max="100" value="' + score + '" class="sub-score"></td>' +
+    '<td><select class="sub-diff">' +
+    '<option value="easy"' + (diff === 'easy' ? ' selected' : '') + '>Easy</option>' +
+    '<option value="medium"' + (diff === 'medium' ? ' selected' : '') + '>Medium</option>' +
+    '<option value="hard"' + (diff === 'hard' ? ' selected' : '') + '>Hard</option>' +
+    '</select></td>' +
+    '<td><button class="btn-del" onclick="document.getElementById(\'row' + id + '\').remove()">Remove</button></td>';
+  tbody.appendChild(tr);
+}
+
+function toggleTag(el) { el.classList.toggle('selected'); }
+
+function getSubjects() {
+  var rows = document.querySelectorAll('#subjects-tbody tr');
+  var out = [];
+  rows.forEach(function(r) {
+    var n = r.querySelector('.sub-name') ? r.querySelector('.sub-name').value.trim() : '';
+    var s = r.querySelector('.sub-score') ? parseFloat(r.querySelector('.sub-score').value) || 0 : 0;
+    var d = r.querySelector('.sub-diff') ? r.querySelector('.sub-diff').value : 'medium';
+    if (n) out.push({ subject_name: n, score: s, difficulty: d });
+  });
+  return out;
+}
+
+function getExtras() {
+  var out = [];
+  document.querySelectorAll('.tag.selected').forEach(function(t) { out.push(t.textContent.trim()); });
+  return out;
+}
+
+function addDefaultRows() {
+  addRow('Mathematics', '', 'hard');
+  addRow('English', '', 'medium');
+  addRow('Science', '', 'medium');
+}
+
+function resetForm() {
+  ['f-name','f-attendance','f-study'].forEach(function(id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  ['f-grade','f-style'].forEach(function(id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  document.querySelectorAll('.tag.selected').forEach(function(t) { t.classList.remove('selected'); });
+  document.getElementById('subjects-tbody').innerHTML = '';
+  rowCount = 0;
+  addDefaultRows();
+}
+
+async function submitForm() {
+  var name = document.getElementById('f-name').value.trim();
+  var att  = parseFloat(document.getElementById('f-attendance').value);
+  var study = parseFloat(document.getElementById('f-study').value) || 0;
+  if (!name) { showToast('Please enter your name.', 'error'); return; }
+  if (isNaN(att) || att < 0 || att > 100) { showToast('Enter valid attendance 0-100.', 'error'); return; }
+  var subs = getSubjects();
+  if (!subs.length) { showToast('Add at least one subject.', 'error'); return; }
+  currentFormData = {
+    name: name,
+    grade_level: document.getElementById('f-grade').value,
+    attendance_rate: att,
+    study_hours_per_day: study,
+    learning_style: document.getElementById('f-style').value,
+    subjects: subs,
+    extracurriculars: getExtras()
+  };
+  setLoading(true);
+  try {
+    var data = await apiPost('/analyze', currentFormData);
+    setLoading(false);
+    if (data.success) {
+      renderResults(data.analysis, name);
+      goTo('results');
+      var btn = document.getElementById('save-btn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Save Record'; }
+    } else {
+      showToast('Analysis failed: ' + (data.error || 'error'), 'error');
+    }
+  } catch(e) {
+    setLoading(false);
+    showToast('Cannot reach Flask server on port 5000.', 'error');
+  }
+}
+
+function setBar(id, pct, col) {
+  var e = document.getElementById(id);
+  if (e) { e.style.width = pct + '%'; e.style.background = col; }
+}
+
+function renderResults(a, name) {
+  document.getElementById('res-name').textContent = name.toUpperCase();
+  document.getElementById('res-summary').textContent = a.summary || '';
+  var lv = document.getElementById('res-level');
+  lv.textContent = '// ' + (a.performance_label || '').toUpperCase();
+  lv.style.color = a.performance_color || '#111111';
+  var gv = document.getElementById('res-gpa');
+  gv.textContent = typeof a.gpa === 'number' ? a.gpa.toFixed(2) : '0.00';
+  gv.style.color = a.performance_color || '#111111';
+  var att = a.attendance_rate || a.attendance || 0;
+  document.getElementById('m-att').textContent = att + '%';
+  document.getElementById('m-study').textContent = (a.study_hours || 0) + 'h';
+  document.getElementById('m-subcount').textContent = (a.enriched_subjects || []).length;
+  document.getElementById('m-advice').textContent = (a.advice || []).length;
+  setTimeout(function() {
+    setBar('m-att-bar', att, '#1a7a4a');
+    setBar('m-study-bar', Math.min(((a.study_hours || 0) / 8) * 100, 100), '#0d7377');
+    setBar('m-sub-bar', Math.min(((a.enriched_subjects || []).length / 8) * 100, 100), '#d4820a');
+    setBar('m-adv-bar', 100, '#e84141');
+  }, 100);
+  var subEl = document.getElementById('res-subjects');
+  var subs = a.enriched_subjects || [];
+  if (!subs.length) {
+    subEl.innerHTML = '<p style="color:#555555">No subjects.</p>';
+  } else {
+    var sh = '';
+    subs.forEach(function(s) {
+      var c = s.score >= 80 ? '#1a7a4a' : (s.score >= 60 ? '#d4820a' : '#e84141');
+      sh += '<div class="sub-bar-item"><div class="sub-bar-meta"><span>' + s.subject_name + '</span><span class="grade" style="color:' + c + '">' + s.score + '/100 ' + (s.grade || '') + '</span></div><div class="sub-bar-track"><div class="sub-bar-fill" data-w="' + s.score + '" style="width:0%;background:' + c + '"></div></div></div>';
+    });
+    subEl.innerHTML = sh;
+    setTimeout(function() {
+      document.querySelectorAll('.sub-bar-fill[data-w]').forEach(function(e) { e.style.width = e.getAttribute('data-w') + '%'; });
+    }, 150);
+  }
+  var PL = { low_gpa:'Low GPA', poor_attendance:'Poor Attendance', weak_subjects:'Weak Subjects', low_study_hours:'Low Study Hours', no_extracurricular:'No Extracurricular' };
+  var ih = '';
+  (a.problems_detected || []).forEach(function(p) { ih += '<div class="issue-item">Warning: ' + (PL[p] || p) + '</div>'; });
+  (a.strengths || []).forEach(function(s) { ih += '<div class="strength-item">Strong: ' + s + '</div>'; });
+  if (!ih) ih = '<div class="strength-item">No critical issues.</div>';
+  document.getElementById('res-issues').innerHTML = ih;
+  var advEl = document.getElementById('res-advice');
+  var adv = a.advice || [];
+  if (!adv.length) { advEl.innerHTML = '<p style="padding:2rem;color:#555">No advice.</p>'; return; }
+  var ah = '';
+  adv.forEach(function(d) {
+    var st = '';
+    (d.action_steps || []).forEach(function(s, j) { st += '<div class="adv-step"><div class="step-dot">' + (j + 1) + '</div><div>' + s + '</div></div>'; });
+    ah += '<div class="advice-card" onclick="this.classList.toggle(\'expanded\')"><div class="adv-priority prio-' + (d.priority || 'medium') + '">[ ' + (d.priority || 'medium').toUpperCase() + ' ]</div><span class="adv-icon">' + (d.icon || '') + '</span><div class="adv-title">' + (d.title || '') + '</div><div class="adv-desc">' + (d.description || '') + '</div><div class="adv-expand">' + st + '</div></div>';
+  });
+  advEl.innerHTML = ah;
+}
+
+async function saveRecord() {
+  if (!currentFormData) return;
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    var d = await apiPost('/students', currentFormData);
+    if (d.success) { showToast('Saved! ID: ' + d.student_id, 'success'); btn.textContent = 'Saved'; }
+    else { showToast('Save failed.', 'error'); btn.disabled = false; btn.textContent = 'Save Record'; }
+  } catch(e) { showToast('Unreachable.', 'error'); btn.disabled = false; btn.textContent = 'Save Record'; }
+}
+
+async function loadHistory() {
+  var search = document.getElementById('h-search') ? document.getElementById('h-search').value : '';
+  var level  = document.getElementById('h-level')  ? document.getElementById('h-level').value  : '';
+  var wrap   = document.getElementById('students-table-body');
+  if (!wrap) return;
+  wrap.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#555">Loading...</td></tr>';
+  try {
+    var qs = '?limit=50' + (search ? '&search=' + encodeURIComponent(search) : '') + (level ? '&level=' + level : '');
+    var data = await apiGet('/students' + qs);
+    if (!data.success || !data.students || !data.students.length) {
+      wrap.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;color:#555">No records. Analyze and save a student first.</td></tr>';
+      return;
+    }
+    var tot = document.getElementById('history-total');
+    if (tot) tot.textContent = data.total + ' record' + (data.total !== 1 ? 's' : '');
+    var rows = '';
+    data.students.forEach(function(s) {
+      var col = s.performance_color || '#111';
+      var gpa = typeof s.gpa === 'number' ? s.gpa.toFixed(2) : '--';
+      var dt  = s.created_at ? new Date(s.created_at).toLocaleDateString() : '--';
+      rows += '<tr><td style="font-family:monospace;font-size:0.75rem;color:#555">' + s.id + '</td><td><strong>' + s.name + '</strong></td><td>' + (s.grade_level || '--') + '</td><td style="font-family:monospace;font-weight:600;color:' + col + '">' + gpa + '</td><td style="color:' + col + ';font-family:monospace;font-size:0.75rem;font-weight:600">' + (s.performance_label || '--') + '</td><td>' + (s.attendance_rate != null ? s.attendance_rate + '%' : '--') + '</td><td style="color:#555">' + dt + '</td><td><button class="btn-view" onclick="viewRecord(\'' + s.id + '\')">View</button> <button class="btn-delete" onclick="deleteRecord(\'' + s.id + '\',this)">Delete</button></td></tr>';
+    });
+    wrap.innerHTML = rows;
+  } catch(e) {
+    wrap.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#e84141">Server unreachable. Is Flask running?</td></tr>';
+  }
+}
+
+async function viewRecord(id) {
+  setLoading(true);
+  try {
+    var d = await apiGet('/students/' + id);
+    setLoading(false);
+    if (d.success) {
+      renderResults(d.student.analysis, d.student.name);
+      goTo('results');
+      var b = document.getElementById('save-btn');
+      b.textContent = 'Already Saved'; b.disabled = true;
+    }
+  } catch(e) { setLoading(false); showToast('Cannot load.', 'error'); }
+}
+
+async function deleteRecord(id, btn) {
+  if (!confirm('Delete ' + id + '?')) return;
+  btn.textContent = '...';
+  try { await apiDel('/students/' + id); showToast('Deleted.', 'success'); loadHistory(); }
+  catch(e) { showToast('Failed.', 'error'); }
+}
+
+async function loadStats() {
+  try {
+    var data = await apiGet('/stats');
+    if (!data.success) return;
+    document.getElementById('stat-total').textContent = data.total_students || 0;
+    document.getElementById('stat-gpa').textContent   = data.avg_gpa ? parseFloat(data.avg_gpa).toFixed(2) : '0.00';
+    document.getElementById('stat-att').textContent   = data.avg_attendance ? parseFloat(data.avg_attendance).toFixed(1) + '%' : '0%';
+    var lv = data.performance_levels || {};
+    document.getElementById('stat-exc').textContent  = lv.excellent || 0;
+    document.getElementById('stat-crit').textContent = lv.critical  || 0;
+    var freq = data.problem_frequency || {};
+    var ent  = Object.entries(freq).sort(function(a, b) { return b[1] - a[1]; });
+    document.getElementById('stat-top-prob').textContent = ent.length ? ent[0][0].replace(/_/g, ' ').toUpperCase() : 'NONE';
+    renderCharts(data);
+  } catch(e) {}
+}
+
+function destroyChart(id) { if (chartObjs[id]) { chartObjs[id].destroy(); delete chartObjs[id]; } }
+
+function renderCharts(data) {
+  var lv = data.performance_levels || {};
+  destroyChart('chart-levels');
+  var el1 = document.getElementById('chart-levels');
+  if (el1) chartObjs['chart-levels'] = new Chart(el1, { type:'doughnut', data:{ labels:['Excellent','Good','Average','Below Avg','Critical'], datasets:[{ data:[lv.excellent||0,lv.good||0,lv.average||0,lv.below_average||0,lv.critical||0], backgroundColor:['#1a7a4a','#0d7377','#d4820a','#f97316','#e84141'], borderColor:'#f5f2eb', borderWidth:3 }] }, options:{ cutout:'65%', plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'IBM Plex Mono', size:10 }, padding:10, color:'#111111' } } } } });
+  var sa = data.subject_averages || {};
+  var sl = Object.keys(sa); var sv = sl.map(function(k){return parseFloat(sa[k])||0;}); var sc = sv.map(function(v){return v>=80?'#1a7a4a':(v>=60?'#d4820a':'#e84141');});
+  if (!sl.length) { sl=['No Data']; sv=[0]; sc=['#111']; }
+  destroyChart('chart-subjects');
+  var el2 = document.getElementById('chart-subjects');
+  if (el2) chartObjs['chart-subjects'] = new Chart(el2, { type:'bar', data:{ labels:sl, datasets:[{ label:'Avg', data:sv, backgroundColor:sc, borderColor:'#111', borderWidth:2 }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{min:0,max:100,grid:{color:'rgba(17,17,17,0.08)'},ticks:{font:{family:'IBM Plex Mono',size:10},color:'#111'}}, y:{grid:{display:false},ticks:{font:{size:11},color:'#111'}} } } });
+  var pf = data.problem_frequency || {};
+  var pl = Object.keys(pf).map(function(k){return k.replace(/_/g,' ');}); var pv = Object.values(pf).map(function(v){return parseInt(v)||0;});
+  if (!pl.length) { pl=['No Data']; pv=[0]; }
+  destroyChart('chart-problems');
+  var el3 = document.getElementById('chart-problems');
+  if (el3) chartObjs['chart-problems'] = new Chart(el3, { type:'bar', data:{ labels:pl, datasets:[{ label:'Count', data:pv, backgroundColor:'#e84141', borderColor:'#111', borderWidth:2 }] }, options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,font:{family:'IBM Plex Mono',size:10},color:'#111'},grid:{color:'rgba(17,17,17,0.08)'}}, x:{grid:{display:false},ticks:{font:{size:10},color:'#111'}} } } });
+}
+
+var GQL = {
+  'All Students': '{\n  students(limit:10){\n    id name gradeLevel\n    analysis{gpa performanceLabel}\n  }\n}',
+  'Stats': '{\n  stats{\n    totalStudents avgGpa avgAttendance excellentCount criticalCount mostCommonProblem\n  }\n}',
+  'Search': '{\n  search(name:""){\n    id name\n    analysis{gpa performanceLabel}\n  }\n}',
+  'Single Student': '{\n  student(id:"REPLACE_ID"){\n    id name\n    analysis{gpa performanceLabel summary}\n  }\n}'
+};
+
+function loadPreset(n) { var e = document.getElementById('gql-query'); if (e) e.value = GQL[n] || ''; }
+
+async function runGraphQL() {
+  var q = document.getElementById('gql-query').value.trim();
+  var res = document.getElementById('gql-result');
+  if (!q) return;
+  res.textContent = 'Running...';
+  try { var d = await apiPost('/graphql', { query: q }); res.textContent = JSON.stringify(d, null, 2); }
+  catch(e) { res.textContent = 'Error: ' + e.message; }
+}
+
+function setLoading(on) {
+  var e = document.getElementById('loading');
+  if (on) e.classList.add('active'); else e.classList.remove('active');
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 3500);
+}
+
+// START - runs when page loads
+addDefaultRows();
+var gq = document.getElementById('gql-query');
+if (gq) gq.value = GQL['All Students'];
+try {
+  apiGet('/db-info').then(function(d) {
+    if (d && d.success) {
+      var b = document.getElementById('db-badge');
+      if (b) b.textContent = d.db_type.toUpperCase();
+    }
+  });
+} catch(e) {}
+</script>
+</body>
+</html>
